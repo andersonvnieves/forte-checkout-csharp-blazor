@@ -1,0 +1,68 @@
+@rendermode InteractiveServer
+@implements IDisposable
+@inject NavigationManager Nav
+
+<header class="fco-header">
+    <div class="fco-header-inner">
+        <a href="/" class="fco-shrink-0">
+            <img src="assets/csg_forte.png" alt="CSG Forte" class="fco-logo" />
+        </a>
+
+        <nav class="fco-nav-desktop" aria-label="Main">
+            <a href="/">Home</a>
+            <a href="@DocHref" target="_blank" rel="noopener noreferrer">Documentation</a>
+        </nav>
+
+        <button type="button"
+                class="fco-nav-toggle"
+                aria-expanded="@_open"
+                aria-controls="mobile-nav"
+                aria-label="@(_open ? "Close menu" : "Open menu")"
+                @onclick="Toggle">
+            @if (_open)
+            {
+                <svg class="fco-icon-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            }
+            else
+            {
+                <svg class="fco-icon-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            }
+        </button>
+    </div>
+
+    <div id="mobile-nav" class="fco-mobile-nav @(_open ? "is-open" : null)">
+        <nav class="fco-mobile-nav-inner" aria-label="Mobile">
+            <a href="/" @onclick="CloseMenu">Home</a>
+            <a href="@DocHref" target="_blank" rel="noopener noreferrer" @onclick="CloseMenu">Documentation</a>
+        </nav>
+    </div>
+</header>
+
+@code {
+    private const string DocHref = "https://developers.forte.net/forte-checkout-v2-auth/";
+    private bool _open;
+
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _open = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+
+    private void Toggle() => _open = !_open;
+
+    private void CloseMenu() => _open = false;
+}

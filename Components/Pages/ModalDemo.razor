@@ -1,0 +1,84 @@
+@page "/modaldemo"
+@rendermode InteractiveServer
+@inject IOptions<FcoOptions> Options
+@inject IJSRuntime JS
+
+<PageTitle>Modal checkout</PageTitle>
+
+<section class="fco-section fco-section--modal">
+    <div class="fco-hero-left">
+        <div class="fco-hero-left-inner">
+            <h1 class="fco-h1">With Forte Checkout<br class="fco-br-sm" /> you can sell anything</h1>
+            <h1 class="fco-h1-bold">Even a piece of the moon</h1>
+            <div class="fco-pay-row">
+                <button id="submit-modal"
+                        @ref="_payButton"
+                        type="button"
+                        api_login_id="@_o.ApiAccessId"
+                        method="sale"
+                        version_number="@_o.VersionNumber"
+                        location_id="@_o.LocationId"
+                        utc_time="@_utcTime"
+                        hash_method="sha256"
+                        signature="@_signature"
+                        total_amount="@Subtotal"
+                        order_number="@_orderNumber"
+                        collect_shipping_address="true"
+                        template_id="default"
+                        embedded="false"
+                        disabled="@_disabled"
+                        callback="fcoCallback"
+                        class="fco-btn-pay">
+                    Pay Now
+                </button>
+            </div>
+        </div>
+
+        <p class="fco-tagline">Unfortunately this is just a tech demo and we are<br class="fco-br-lg" /> not able to sell you a real piece of the moon.</p>
+    </div>
+</section>
+
+@code {
+    private const string Subtotal = "5.00";
+    private readonly string _orderNumber = "";
+
+    private ElementReference _payButton;
+    private FcoOptions _o = null!;
+    private string _utcTime = "";
+    private string _signature = "";
+    private bool _setupComplete;
+
+    private bool _disabled => string.IsNullOrEmpty(_utcTime) || string.IsNullOrEmpty(_signature);
+
+    protected override void OnInitialized()
+    {
+        _o = Options.Value;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("fco.ensureScriptLoaded", _o.CheckoutUrl("/v2/js"));
+            await JS.InvokeVoidAsync("fco.registerCallback");
+            _utcTime = await JS.InvokeAsync<string>("fco.fetchUtc");
+            if (!string.IsNullOrEmpty(_utcTime))
+            {
+                var msg = FcoSignature.BuildMessage(_o.ApiAccessId, "sale", _o.VersionNumber, Subtotal, _utcTime, _orderNumber);
+                _signature = await JS.InvokeAsync<string>("fco.hmacSha256", msg, _o.ApiSecureKey);
+            }
+
+            _setupComplete = true;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        if (!_setupComplete || string.IsNullOrEmpty(_signature))
+        {
+            return;
+        }
+
+        // Re-apply whenever the button is re-rendered so `key` is never missing (Blazor can replace the node).
+        await JS.InvokeVoidAsync("fco.setButtonKey", _payButton, _o.ApiSecureKey);
+    }
+}
