@@ -166,6 +166,32 @@
       if (el) el.click();
     },
 
+    /** Subset of Forte callback JSON shown on /success and /error (matches forte-checkout-angular). */
+    stashCallbackPayloadForResultPage: function (payload) {
+      if (!payload) return;
+      var stash = {
+        event: payload.event,
+        request_id: payload.request_id,
+        response_code: payload.response_code,
+        response_description: payload.response_description
+      };
+      try {
+        sessionStorage.setItem('fco_callback_payload', JSON.stringify(stash));
+      } catch (e) {}
+    },
+
+    /** Read and clear stashed callback payload (one-shot, like Angular FcoCallbackNavigationService.takeStashed). */
+    takeCallbackPayload: function () {
+      try {
+        var raw = sessionStorage.getItem('fco_callback_payload');
+        sessionStorage.removeItem('fco_callback_payload');
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
+      }
+    },
+
     registerCallback: function () {
       window.fcoCallback = function (response) {
         var data = response && response.data;
@@ -179,8 +205,15 @@
             payload = null;
           }
         }
-        if (payload && payload.event === 'success') window.location.href = '/success';
-        if (payload && payload.event === 'failure') window.location.href = '/error';
+        if (!payload) return;
+        if (payload.event === 'success') {
+          window.fco.stashCallbackPayloadForResultPage(payload);
+          window.location.href = '/success';
+        }
+        if (payload.event === 'failure') {
+          window.fco.stashCallbackPayloadForResultPage(payload);
+          window.location.href = '/error';
+        }
       };
     }
   };

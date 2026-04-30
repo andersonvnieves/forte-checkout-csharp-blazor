@@ -1,0 +1,55 @@
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+@if (_payload is { HasAny: true } p)
+{
+    <div class="fco-callback-details" role="region" aria-label="Transaction details">
+        <h2 class="fco-callback-details-title">Transaction details</h2>
+        <dl class="fco-callback-details-dl">
+            @if (!string.IsNullOrEmpty(p.Event))
+            {
+                <dt class="fco-callback-details-dt">Event</dt>
+                <dd class="fco-callback-details-dd fco-callback-details-dd-medium">@p.Event</dd>
+            }
+            @if (!string.IsNullOrEmpty(p.RequestId))
+            {
+                <dt class="fco-callback-details-dt">Request ID</dt>
+                <dd class="fco-callback-details-dd fco-callback-details-dd-mono">@p.RequestId</dd>
+            }
+            @if (!string.IsNullOrEmpty(p.ResponseCode))
+            {
+                <dt class="fco-callback-details-dt">Response code</dt>
+                <dd class="fco-callback-details-dd fco-callback-details-dd-medium">@p.ResponseCode</dd>
+            }
+            @if (!string.IsNullOrEmpty(p.ResponseDescription))
+            {
+                <dt class="fco-callback-details-dt">Response description</dt>
+                <dd class="fco-callback-details-dd">@p.ResponseDescription</dd>
+            }
+        </dl>
+    </div>
+}
+
+@code {
+    private FcoCallbackPayload? _payload;
+    private bool _payloadReadComplete;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_payloadReadComplete)
+        {
+            return;
+        }
+
+        try
+        {
+            _payload = await JS.InvokeAsync<FcoCallbackPayload?>("fco.takeCallbackPayload");
+            _payloadReadComplete = true;
+            StateHasChanged();
+        }
+        catch (InvalidOperationException)
+        {
+            // Static SSR prerender — runs again once the interactive render mode is active.
+        }
+    }
+}

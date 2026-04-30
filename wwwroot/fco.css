@@ -5,6 +5,8 @@
   --fco-hover: #036fc2;
   --fco-active: #025a9e;
   --fco-disabled: #b3d8f6;
+  --fco-stone-500: #78716c;
+  --fco-stone-600: #57534e;
   --fco-stone-700: #44403c;
   --fco-stone-900: #1c1917;
   --fco-stone-200: #e7e5e4;
@@ -612,6 +614,67 @@ body {
 
 .fco-text-danger {
   color: #dc2626;
+}
+
+/* Callback details on success / payment error (matches Angular app-fco-callback-details / Tailwind stone) */
+.fco-callback-details {
+  margin-top: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--fco-stone-200);
+  background: var(--fco-stone-50);
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.fco-callback-details-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fco-stone-600);
+}
+
+.fco-callback-details-dl {
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .fco-callback-details-dl {
+    grid-template-columns: minmax(8rem, auto) 1fr;
+    column-gap: 1rem;
+    row-gap: 0.25rem;
+  }
+}
+
+.fco-callback-details-dt {
+  margin: 0;
+  color: var(--fco-stone-500);
+}
+
+.fco-callback-details-dd {
+  margin: 0;
+  color: var(--fco-stone-900);
+}
+
+.fco-callback-details-dd-medium {
+  font-weight: 600;
+}
+
+.fco-callback-details-dd-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+  font-size: 0.75rem;
+  word-break: break-all;
+}
+
+@media (min-width: 640px) {
+  .fco-callback-details-dd-mono {
+    font-size: 0.875rem;
+  }
 }
 
 .fco-btn-trigger-hidden {
